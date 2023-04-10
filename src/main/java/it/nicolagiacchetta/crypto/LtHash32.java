@@ -23,6 +23,16 @@ public class LtHash32 implements LtHash {
         reset();
     }
 
+    public LtHash32(byte[]... inputs) {
+        this(new Blake2bDigest());
+        this.add(inputs);
+    }
+
+    private LtHash32(byte[] checksum) {
+        this(new Blake2bDigest());
+        this.checksum = checksum;
+    }
+
     @Override
     public void add(byte[]... inputs) {
         applyInputsToChecksum(Integer::sum, inputs);
@@ -65,6 +75,11 @@ public class LtHash32 implements LtHash {
         return Arrays.equals(this.checksum, otherChecksum);
     }
 
+    public LtHash addHash(LtHash hash) {
+        byte[] result = applyHashToChecksum(Integer::sum, hash.getChecksum(), getChecksum()); // Deep copies checksum
+        return new LtHash32(result);
+    }
+
     private void applyInputsToChecksum(BiFunction<Integer, Integer, Integer> function, byte[]... inputs) {
         if(inputs != null) {
             for (byte[] input : inputs) {
@@ -80,7 +95,11 @@ public class LtHash32 implements LtHash {
     }
 
     private byte[] applyHashToChecksum(BiFunction<Integer, Integer, Integer> function, byte[] inputHash) {
-        ByteBuffer checksumWrap = ByteBuffer.wrap(this.checksum);
+        return applyHashToChecksum(function, inputHash, checksum);
+    }
+
+    private byte[] applyHashToChecksum(BiFunction<Integer, Integer, Integer> function, byte[] inputHash, byte[] checksum) {
+        ByteBuffer checksumWrap = ByteBuffer.wrap(checksum);
         ByteBuffer newHashWrap = ByteBuffer.wrap(inputHash);
         for(int i=0; i<inputHash.length; i+=INT_SIZE_IN_BYTES) {
             int sum = function.apply(checksumWrap.getInt(), newHashWrap.getInt());

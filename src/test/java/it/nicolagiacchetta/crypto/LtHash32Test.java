@@ -6,6 +6,50 @@ import org.junit.Test;
 public class LtHash32Test {
 
     @Test
+    public void testAddingHashesDoesNotMutate() {
+        LtHash h1 = new LtHash32("apple".getBytes());
+        LtHash h2 = new LtHash32("orange".getBytes());
+
+        assert(h1.checksumEquals(new LtHash32("apple".getBytes()).getChecksum()));
+        assert(h2.checksumEquals(new LtHash32("orange".getBytes()).getChecksum()));
+    }
+
+    @Test
+    public void testAddingHashes() {
+        LtHash h2 = new LtHash32("apple".getBytes());
+        LtHash h3 = new LtHash32("orange".getBytes());
+        LtHash h4 = h2.addHash(h3);
+
+        assert(h4.checksumEquals(new LtHash32("apple".getBytes(), "orange".getBytes()).getChecksum()));
+    }
+
+    @Test
+    public void testIdentityForAddingHashes() {
+        LtHash h1 = new LtHash32("apple".getBytes());
+
+        assert(h1.checksumEquals(new LtHash32().addHash(h1).getChecksum()));
+    }
+    
+    @Test
+    public void testCommutativityOfAddingHashes() {
+        LtHash h1 = new LtHash32("apple".getBytes());
+        LtHash h2 = new LtHash32("orange".getBytes());
+
+        
+        assert(h1.addHash(h2).checksumEquals(h2.addHash(h1).getChecksum()));
+    }
+
+    @Test
+    public void testAssociativityOfAddingHashes() {
+        LtHash h1 = new LtHash32("apple".getBytes());
+        LtHash h2 = new LtHash32("orange".getBytes());
+        LtHash h3 = new LtHash32("banana".getBytes());
+
+        assert(h1.addHash(h2).addHash(h3).checksumEquals(h1.addHash(h2.addHash(h3)).getChecksum()));
+
+    }
+
+    @Test
     public void testUpdateFalseToTrue() {
         LtHash32 ltHash = new LtHash32();
         ltHash.add("apple".getBytes(), "orange".getBytes(), "banana".getBytes());
@@ -34,7 +78,7 @@ public class LtHash32Test {
         ltHash.add("apple".getBytes(), "orange".getBytes());
         byte[] checksum = ltHash.getChecksum();
 
-                // Remove the hash of "apple" from the checksum and check
+        // Remove the hash of "apple" from the checksum and check
         // if the 2 checksums are equals
         ltHash.remove("apple".getBytes());
         boolean isEqual = ltHash.checksumEquals(checksum);

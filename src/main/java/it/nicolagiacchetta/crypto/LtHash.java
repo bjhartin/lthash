@@ -16,6 +16,17 @@ public interface LtHash {
     void add(byte[]... inputs);
 
     /**
+     * Update the incremental checksum by adding a previously computed hash.
+     *
+     * NOTE: This method mutates the current LtHash and returns it.
+     *
+     * Adding hashes is commutative.
+     *
+     * @param hash     The previous hash.  Should not be null.
+     */
+    LtHash addHash(LtHash hash);
+
+    /**
      * Update the incremental checksum by subtracting the hash of the value provided
      * in input. The method will take care of hashing the input with the chosen
      * algorithm.
